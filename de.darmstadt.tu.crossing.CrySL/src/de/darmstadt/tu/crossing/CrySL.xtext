@@ -7,6 +7,7 @@ Domainmodel:
 	'SPEC' javaType=[jvmTypes::JvmType|QualifiedName] ((array="[]") | ("<" collection=[jvmTypes::JvmGenericType|QualifiedName] ">"))?
 	'OBJECTS' (usage=UseBlock)
 	('FORBIDDEN' forbEvent=ForbiddenBlock)?
+	('EXCEPTIONS' exceptions=ExceptionsBlock) ?
 	'EVENTS' (req_events=RequiredBlock)
 	'ORDER' order=Order
 	('CONSTRAINTS' reqConstraints=EnforceConsBlock)?
@@ -60,16 +61,36 @@ FQN:
 QN:
 	ID ('.' ID)* ("[]")?;
 
+
+/* Exception Declarations */
+
+ExceptionsBlock:
+	(exceptions += Exception ';')+
+;
+
+Exception:
+	ExceptionDeclaration | ExceptionAggregate
+;
+
+ExceptionDeclaration:
+	name = ID ':' exception = JvmTypeReference
+;
+
+ExceptionAggregate:
+	name = ID ':=' exceptions += [Exception] ('|' exceptions += [Exception])*
+;
+
+
 	///////////// EVENTS
 Event:
 	LabelMethodCall | Aggregate | '*';
 
 	/// LABELMETHCALL
 LabelMethodCall returns SuperType:
-	name=ID ":" meth=Method;
+	name=ID ":" meth=Method ('throws' exception=[Exception])? ';';
 
 Method:
-	(leftSide=[Object] "=")? methName=[jvmTypes::JvmExecutable|ID] "(" parList=ParList? ");";
+	(leftSide=[Object] "=")? methName=[jvmTypes::JvmExecutable|ID] "(" parList=ParList? ")";
 
 ParList:
 	(parameters+=Par (',' parameters+=Par)*);
